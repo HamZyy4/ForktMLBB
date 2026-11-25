@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+GRADLE_VERSION="8.14.1"
+GRADLE_HOME_DIR="${GRADLE_USER_HOME:-$HOME/.gradle}/manual-dists/gradle-${GRADLE_VERSION}"
+if [ ! -x "$GRADLE_HOME_DIR/bin/gradle" ]; then
+  mkdir -p "$(dirname "$GRADLE_HOME_DIR")"
+  TMP_ZIP="${TMPDIR:-/tmp}/gradle-${GRADLE_VERSION}-all.zip"
+  if [ ! -f "$TMP_ZIP" ]; then
+    curl -fL --retry 3 "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip" -o "$TMP_ZIP"
+  fi
+  TMP_DIR="${TMPDIR:-/tmp}/gradle-bootstrap-${GRADLE_VERSION}"
+  rm -rf "$TMP_DIR"
+  mkdir -p "$TMP_DIR"
+  unzip -q "$TMP_ZIP" -d "$TMP_DIR"
+  mv "$TMP_DIR/gradle-${GRADLE_VERSION}" "$GRADLE_HOME_DIR"
+  rmdir "$TMP_DIR" 2>/dev/null || true
+fi
+exec "$GRADLE_HOME_DIR/bin/gradle" "$@"
